@@ -1,3 +1,4 @@
+
 import streamlit as st
 import openai
 
@@ -22,24 +23,22 @@ with st.form("ai_discovery_form"):
 if submitted and business_description.strip():
     with st.spinner("Analyzing your business challenge and finding AI solutions..."):
 
-        prompt = f"""
-You are an expert AI business consultant. A user has described the following business and challenge:
+        prompt = f"""You are an expert AI business consultant. A user has described the following business and challenge:
 
-"""{business_description}"""
+        {business_description}
 
-Your job is to:
-1. Identify the business type and summarize the core problem.
-2. Recommend 2–4 AI-powered use cases to solve it.
-3. For each, provide:
-   - A named AI tool or platform
-   - A short description of how it works
-   - The business impact or benefit (e.g. saves time, increases sales)
-4. Format the output clearly and professionally.
+        Your job is to:
+        1. Identify the business type and summarize the core problem.
+        2. Recommend 2–4 AI-powered use cases to solve it.
+        3. For each, provide:
+           - A named AI tool or platform
+           - A short description of how it works
+           - The business impact or benefit (e.g. saves time, increases sales)
+        4. Format the output clearly and professionally.
 
-Only return the structured report. Do not mention that you are an AI.
+        Only return the structured report. Do not mention that you are an AI.
 
-Now generate the AI strategy:
-"""
+        Now generate the AI strategy."""
 
         try:
             response = openai.ChatCompletion.create(
