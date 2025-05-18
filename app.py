@@ -1,47 +1,59 @@
-
 import streamlit as st
-import pandas as pd
+import openai
 
-def recommend_ai_tools(business_type, pain_point):
-    recommendations = []
+# Set page config
+st.set_page_config(page_title="Silent Edge Architect", layout="centered")
 
-    if business_type.lower() == "retail":
-        if "support" in pain_point.lower():
-            recommendations.append(("ChatGPT-powered chatbot", "For answering FAQs on your site 24/7"))
-            recommendations.append(("Tidio or Intercom", "To automate and track customer messages"))
-        if "inventory" in pain_point.lower():
-            recommendations.append(("Google Sheets + AI plugin", "For stock forecasting and order tracking"))
-            recommendations.append(("Zapier", "To automate inventory reorder alerts"))
+# Load OpenAI key securely
+openai.api_key = st.secrets["openai_key"]
 
-    if business_type.lower() == "service":
-        if "appointments" in pain_point.lower():
-            recommendations.append(("Calendly + AI assistant", "To auto-schedule meetings with clients"))
-            recommendations.append(("Zapier", "To automate follow-ups after bookings"))
-        if "emails" in pain_point.lower():
-            recommendations.append(("Lavender AI", "To generate and optimize client emails"))
-            recommendations.append(("ChatGPT", "To help respond to common questions"))
+# App header
+st.title("🧠 Silent Edge Architect")
+st.subheader("AI Strategy Engine for Businesses")
+st.markdown("Enter a short description of a business and a challenge they’re facing, and get detailed AI use cases, tools, and implementation insights.")
 
-    if business_type.lower() == "professional":
-        if "documents" in pain_point.lower():
-            recommendations.append(("Docparser", "To extract data from PDFs and forms"))
-            recommendations.append(("Otter.ai", "To transcribe client meetings or calls"))
-        if "reporting" in pain_point.lower():
-            recommendations.append(("Power BI or Google Looker Studio", "To build automated dashboards"))
+# Input form
+with st.form("ai_discovery_form"):
+    business_description = st.text_area("Describe the business and their pain point(s):", height=150,
+                                        placeholder="Example: A real estate agent who spends too much time on paperwork and manual follow-ups.")
+    submitted = st.form_submit_button("Generate AI Use Cases")
 
-    if not recommendations:
-        recommendations.append(("ChatGPT", "To help draft content or answer business questions"))
-        recommendations.append(("Zapier", "To automate workflows between your apps"))
+# If form is submitted
+if submitted and business_description.strip():
+    with st.spinner("Analyzing your business challenge and finding AI solutions..."):
 
-    return pd.DataFrame(recommendations, columns=["Recommended Tool", "Why It Helps"])
+        prompt = f"""
+You are an expert AI business consultant. A user has described the following business and challenge:
 
-st.title("🔍 AI Use Case Recommender for Small Businesses")
+"""{business_description}"""
 
-st.write("Answer two quick questions to get instant AI tool suggestions tailored to your business.")
+Your job is to:
+1. Identify the business type and summarize the core problem.
+2. Recommend 2–4 AI-powered use cases to solve it.
+3. For each, provide:
+   - A named AI tool or platform
+   - A short description of how it works
+   - The business impact or benefit (e.g. saves time, increases sales)
+4. Format the output clearly and professionally.
 
-business_type = st.selectbox("What type of business are you helping?", ["", "Retail", "Service", "Professional"])
-pain_point = st.text_input("What's the biggest challenge they’re facing? (e.g., customer support, scheduling, reporting)")
+Only return the structured report. Do not mention that you are an AI.
 
-if st.button("Get Recommendations") and business_type:
-    results = recommend_ai_tools(business_type, pain_point)
-    st.write("### Recommended AI Tools and Why They Help:")
-    st.dataframe(results)
+Now generate the AI strategy:
+"""
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=800
+            )
+            reply = response["choices"][0]["message"]["content"]
+            st.markdown("### 🧩 AI Strategy Report")
+            st.markdown(reply)
+
+            # Option to copy to clipboard
+            st.download_button("📄 Download Report as Text", reply, file_name="ai_strategy_report.txt")
+
+        except Exception as e:
+            st.error(f"Error: {e}")
